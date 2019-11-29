@@ -125,6 +125,76 @@ class To3ChannelsIRKeyPoints(object):
 
         return img, keypoints
 
+class To3ChannelsGrayscaleKeyPoints(object):
+    def __init__(self):
+        """
+        can only be applied after ToTensor, since using the tensor transform of the image and label
+        :param mean: double for mean
+        :param std: double for std
+        """
+        super().__init__()
+
+    def __call__(self, img, keypoints):
+        """
+        apply transforms to the image and label together
+        :param img: tensor transform of the PIL grayscale image
+        :param label: tensor transform of the 21 landmarks
+        :return: normalize image tensor by mean and std , same label
+        """
+
+        # for PIL Image
+        try:
+            to3channel = img.convert('L')
+            to3channel = to3channel.convert('RGB')
+            np_img = np.array(to3channel)
+            return np_img, keypoints
+        except:
+            pass
+
+        # for opencv image
+        try:
+            assert False
+            return img, keypoints
+        except:
+            pass
+
+        return img, keypoints
+
+class To3ChannelsRGBKeyPoints(object):
+    def __init__(self):
+        """
+        can only be applied after ToTensor, since using the tensor transform of the image and label
+        :param mean: double for mean
+        :param std: double for std
+        """
+        super().__init__()
+
+    def __call__(self, img, keypoints):
+        """
+        apply transforms to the image and label together
+        :param img: tensor transform of the PIL grayscale image
+        :param label: tensor transform of the 21 landmarks
+        :return: normalize image tensor by mean and std , same label
+        """
+
+        # for PIL Image
+        try:
+            to3channel = img.convert('RGB')
+            np_img = np.array(to3channel)
+            return np_img, keypoints
+        except:
+            pass
+
+        # for opencv image
+        try:
+            assert False
+            return img, keypoints
+        except:
+            pass
+
+        return img, keypoints
+
+
 
 class RandomMirrorKeyPoints(object):
     def __call__(self, image, keypoints):

@@ -1,20 +1,12 @@
 import os
 
-import dsntnn
-
 os.environ["CUDA_VISIBLE_DEVICES"] = "6,7"
 
 from torch.utils.tensorboard import SummaryWriter
-import torchvision
 from dataset import GaneratedHandsDataset
 from models.fully_conv_dsnt import CoordRegressionNetwork
 from transforms import *
 import time
-from datetime import datetime
-from menpo.shape import PointCloud
-from menpofit.modelinstance import OrthoPDM
-from menpo.io import export_pickle, import_pickle
-from pathlib import Path
 
 
 def calc_dist(preds, labels):
@@ -30,7 +22,7 @@ def calc_dist(preds, labels):
 
 # dataset load
 transform = ComposeKeyPoints(
-    [To3ChannelsIRKeyPoints(), ResizeKeypoints(224), RandomMirrorKeyPoints(), RandomAffineKeyPoints((-60, 60)),
+    [To3ChannelsGrayscaleKeyPoints(), ResizeKeypoints(224), RandomMirrorKeyPoints(), RandomAffineKeyPoints((-60, 60)),
      ToTensorKeyPoints(), NormalizeKeyPoints((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))])
 
 test_set = GaneratedHandsDataset(
@@ -47,7 +39,7 @@ model = torch.nn.DataParallel(model, [0, 1], 0)
 
 model.load_state_dict(
     torch.load(
-        "/disk1/ofirbartal/Projects/LandmarksExtraction/Checkpoints/FCN_checkpoints/07_11_19__17_35_31//epoch_94.pth"))
+        "/disk1/ofirbartal/Projects/LandmarksExtraction/Checkpoints/FCN_checkpoints/gray_26_11_19__14_36_37//epoch_80.pth"))
 
 torch.cuda.empty_cache()
 total_misses_close = 0
@@ -78,8 +70,8 @@ acc_far = (1 - (float(total_misses_far) / (len(test_set) * 21))) * 100
 print('Accuracy Close {}%'.format(acc_close))
 print('Accuracy Mid {}%'.format(acc_mid))
 print('Accuracy Far {}%'.format(acc_far))
-with open('test2Results.txt', 'w') as f:
+with open('test_gray_Results.txt', 'w') as f:
     f.write('Test Time {}s\n'.format(end - start))
-    f.write('Accuracy Close({}px) {}%\n'.format(pixel_error_threshhold_close, acc_close))
-    f.write('Accuracy Mid({}px) {}%\n'.format(pixel_error_threshhold_mid, acc_mid))
-    f.write('Accuracy Far({}px) {}%\n'.format(pixel_error_threshhold_far, acc_far))
+    f.write('Accuracy Close({}px) {}%\n'.format(pixel_error_threshhold_close,acc_close))
+    f.write('Accuracy Mid({}px) {}%\n'.format(pixel_error_threshhold_mid,acc_mid))
+    f.write('Accuracy Far({}px) {}%\n'.format(pixel_error_threshhold_far,acc_far))
