@@ -45,7 +45,7 @@ accuracy_func = accuracy_measure(threshes)
 
 # dataset load
 transform = ComposeKeyPoints(
-    [To3ChannelsRGBKeyPoints(), ResizeKeypoints(224), RandomMirrorKeyPoints(), RandomAffineKeyPoints((-60, 60)),
+    [To3ChannelsGrayscaleKeyPoints(), ResizeKeypoints(224), RandomMirrorKeyPoints(), RandomAffineKeyPoints((-60, 60)),
      ToTensorKeyPoints(), NormalizeKeyPoints((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))])
 
 train_set = GaneratedHandsDataset(
@@ -65,7 +65,7 @@ if not os.path.exists(checkpoints_path):
     os.makedirs(checkpoints_path)
 
 # Writer will output to ./runs/ directory by default
-writer = SummaryWriter()
+writer = SummaryWriter(comment='_rgb_')
 torch.cuda.empty_cache()
 
 # # model and visualization

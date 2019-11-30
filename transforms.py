@@ -33,7 +33,6 @@ class ResizeKeypoints(object):
         self.size = size
 
     def __call__(self, image, keypoints):
-
         if not isinstance(image, np.ndarray):
             image = np.array(image)
 
@@ -76,7 +75,7 @@ class NormalizeKeyPoints(object):
 
         # map to (-1,1) range
         keypoints_tensor = ((keypoints_tensor * 2) / img_tensor.shape[-1]) - 1
-        
+
         return TTF.normalize(img_tensor, self.mean, self.std), keypoints_tensor
 
 
@@ -125,6 +124,7 @@ class To3ChannelsIRKeyPoints(object):
 
         return img, keypoints
 
+
 class To3ChannelsGrayscaleKeyPoints(object):
     def __init__(self):
         """
@@ -159,6 +159,7 @@ class To3ChannelsGrayscaleKeyPoints(object):
             pass
 
         return img, keypoints
+
 
 class To3ChannelsRGBKeyPoints(object):
     def __init__(self):
@@ -195,7 +196,6 @@ class To3ChannelsRGBKeyPoints(object):
         return img, keypoints
 
 
-
 class RandomMirrorKeyPoints(object):
     def __call__(self, image, keypoints):
         seq = iaa.Sequential([iaa.Fliplr(0.5)])
@@ -230,6 +230,44 @@ class RandomAffineKeyPoints(object):
 
         seq = iaa.Sequential([
             iaa.Affine(rotate=self.min_max_angle, cval=cval),
+        ])
+
+        # Augment BBs and images.
+        image_aug, kps_aug = seq(image=image, keypoints=kps)
+        kps_fixed = np.asarray([[kp.x, kp.y] for kp in kps_aug.keypoints], dtype=np.float32)
+        return image_aug, kps_fixed
+
+
+class CropToKeyPoints(object):
+    """Rotate the image by random degree.
+
+     Args:
+        min_max_angle double: The limits of the degree by which the image can be rotated.
+     """
+
+    def __init__(self, margin):
+        super().__init__()
+        self.margin = margin
+
+    def __call__(self, image, keypoints):
+        """
+        transform the image and label together
+        :param img: PIL grayscale image
+        :param label: 21 landmarks
+        :return: PIL grayscale image, 21 landmarks
+        """
+
+        kps = KeypointsOnImage([Keypoint(*kp) for kp in keypoints], shape=image.shape)
+
+        _max = keypoints.max(0).astype(int)
+        _min = keypoints.min(0).astype(int)
+        max_x = np.min([_max[0] + self.margin, image.shape[1]])
+        max_y = np.min([_max[1] + self.margin, image.shape[0]])
+        min_x = np.max([_min[0] - self.margin, 0])
+        min_y = np.max([_min[1] - self.margin, 0])
+
+        seq = iaa.Sequential([
+            iaa.Crop(px=(min_y, image.shape[1]- max_x, image.shape[0] - max_y, min_x))
         ])
 
         # Augment BBs and images.

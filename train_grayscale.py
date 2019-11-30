@@ -2,7 +2,7 @@ import os
 
 import dsntnn
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "2,3"
+os.environ["CUDA_VISIBLE_DEVICES"] = "6,7"
 
 from torch.utils.tensorboard import SummaryWriter
 import torchvision
@@ -44,9 +44,12 @@ threshes = [5, 10, 15]
 accuracy_func = accuracy_measure(threshes)
 
 # dataset load
+
 transform = ComposeKeyPoints(
     [To3ChannelsGrayscaleKeyPoints(), ResizeKeypoints(224), RandomMirrorKeyPoints(), RandomAffineKeyPoints((-60, 60)),
-     ToTensorKeyPoints(), NormalizeKeyPoints((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))])
+     CropToKeyPoints(3), ResizeKeypoints(224), ToTensorKeyPoints(),
+     NormalizeKeyPoints((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))
+     ])
 
 train_set = GaneratedHandsDataset(
     "/disk1/ofirbartal/Projects/Dataset/GANeratedHands_Release/dataset_csv/train_dataset.csv",
@@ -65,7 +68,7 @@ if not os.path.exists(checkpoints_path):
     os.makedirs(checkpoints_path)
 
 # Writer will output to ./runs/ directory by default
-writer = SummaryWriter()
+writer = SummaryWriter(comment='_grayscale_')
 torch.cuda.empty_cache()
 
 # # model and visualization
